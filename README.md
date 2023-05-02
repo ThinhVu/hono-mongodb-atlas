@@ -7,7 +7,7 @@ A MongoDB Atlas middleware for Hono
 ```ts
 // index.ts
 import {Hono} from "hono";
-import {mongoDBAtlas, IMongoDBAtlasOptions} from '@hono/packages/mongodb-atlas/src/index'
+import {mongoDBAtlas} from '@hono/packages/mongodb-atlas/src/index'
 
 const app = new Hono()
 app.use('/', mongoDBAtlas({
@@ -59,6 +59,9 @@ export default app;
 ## Author
 
 Thinh Vu <https://github.com/ThinhVu>
+
+## TODO
+- fix warning at `c.get('realn-name')`
 
 ## License
 
