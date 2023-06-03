@@ -1,7 +1,7 @@
 {
-  "name": "@hono/mongodb-atlas",
+  "name": "hono-mongodb-atlas",
   "version": "0.0.1",
-  "description": "MongoDB Atlas middleware for hono",
+  "description": "MongoDB Atlas middleware for HonoJS",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -23,9 +23,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/honojs/middleware.git"
+    "url": "https://github.com/ThinhVu/hono-mongodb-atlas.git"
   },
-  "homepage": "https://github.com/honojs/middleware",
+  "homepage": "https://github.com/ThinhVu/hono-mongodb-atlas",
   "dependencies": {
     "realm-web": "2.0.0"
   },
