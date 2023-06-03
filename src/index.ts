@@ -30,19 +30,19 @@ export interface IMongoDBAtlasOptions {
    realmName?: string; // an identifier for this realm instance
 }
 
-export function mongoDBAtlas(options: IMongoDBAtlasOptions) {
+export function mongoDBAtlas(options?: IMongoDBAtlasOptions) {
    return async function(c: Context, next: Next) {
       if (App) {
          await next()
          return
       }
 
-      options = options || {}
-      const realmAppId = options.realmAppId || c.env.REALM_APP_ID
+      const opts = options || {}
+      const realmAppId = opts.realmAppId || c.env.REALM_APP_ID
       if (!realmAppId)
          throw new Error('options.realmAppId and env.REALM_APP_ID is not configured')
 
-      const realmApiKey = options.realmApiKey || c.env.REALM_API_KEY
+      const realmApiKey = opts.realmApiKey || c.env.REALM_API_KEY
       if (!realmApiKey)
          throw new Error('options.realmApiKey and env.REALM_API_KEY is not configured')
 
@@ -51,9 +51,9 @@ export function mongoDBAtlas(options: IMongoDBAtlasOptions) {
       client = user.mongoClient('mongodb-atlas')
 
       // for one who want to inspect raw components
-      c.set(`${options.realmName}-${KEYS.APP}`, App)
-      c.set(`${options.realmName}-${KEYS.USER}`, user)
-      c.set(`${options.realmName}-${KEYS.CLIENT}`, client)
+      c.set(`${opts.realmName}-${KEYS.APP}`, App)
+      c.set(`${opts.realmName}-${KEYS.USER}`, user)
+      c.set(`${opts.realmName}-${KEYS.CLIENT}`, client)
 
       const dbCache: Record<string, MongoDBDatabase> = {}
       function getDb(name: string): MongoDBDatabase {
@@ -64,7 +64,7 @@ export function mongoDBAtlas(options: IMongoDBAtlasOptions) {
 
       const collectionCache: Record<string, MongoDB.MongoDBCollection<Document>> = {}
       function getCollection<T extends Document>(collectionName: string, dbName?: string): MongoDB.MongoDBCollection<T> {
-         dbName = dbName || options.defaultDb || c.env.REALM_DEFAULT_DB_NAME;
+         dbName = dbName || opts.defaultDb || c.env.REALM_DEFAULT_DB_NAME;
          if (!dbName)
             throw new Error('defaultDb is not configured, you need to provide dbName explicitly')
          const key = `${dbName}--${collectionName}`
@@ -78,7 +78,7 @@ export function mongoDBAtlas(options: IMongoDBAtlasOptions) {
          get: (__, collName) => getCollection(collName.toString())
       })
 
-      c.set(options.realmName || 'realm', model)
+      c.set(opts.realmName || 'realm', model)
 
       await next()
    }
