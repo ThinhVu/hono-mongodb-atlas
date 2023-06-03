@@ -7,6 +7,12 @@ import MongoDB = RealmServices.MongoDB
 type MongoDBDatabase = RealmServices.MongoDBDatabase
 type Document = MongoDB.Document
 
+export interface Env {
+   REALM_APP_ID: string;
+   REALM_API_KEY: string;
+   REALM_DEFAULT_DB_NAME: string;
+}
+
 let App: Realm.App
 let user
 let client: MongoDB
@@ -18,24 +24,30 @@ export const KEYS = {
 }
 
 export interface IMongoDBAtlasOptions {
-   realmAppId: string;
-   realmApiKey: string;
-   defaultDb: string;
-   realmName: string; // an identifier for this realm instance
+   defaultDb?: string; // provide is default db to use
+   realmAppId?: string; // if missing, you need to provide REALM_APP_ID in Bindings
+   realmApiKey?: string; // if missing, you need to provide REALM_API_KEY in Bindings
+   realmName?: string; // an identifier for this realm instance
 }
 
 export function mongoDBAtlas(options: IMongoDBAtlasOptions) {
-   if (!options.realmAppId || !options.realmApiKey)
-      throw new Error('Missing Realm App ID or API Key')
-
    return async function(c: Context, next: Next) {
       if (App) {
          await next()
          return
       }
 
-      App = App || new Realm.App(options.realmAppId)
-      user = await App.logIn(Realm.Credentials.apiKey(options.realmApiKey))
+      options = options || {}
+      const realmAppId = options.realmAppId || c.env.REALM_APP_ID
+      if (!realmAppId)
+         throw new Error('options.realmAppId and env.REALM_APP_ID is not configured')
+
+      const realmApiKey = options.realmApiKey || c.env.REALM_API_KEY
+      if (!realmApiKey)
+         throw new Error('options.realmApiKey and env.REALM_API_KEY is not configured')
+
+      App = new Realm.App(realmAppId)
+      user = await App.logIn(Realm.Credentials.apiKey(realmApiKey))
       client = user.mongoClient('mongodb-atlas')
 
       // for one who want to inspect raw components
@@ -51,7 +63,10 @@ export function mongoDBAtlas(options: IMongoDBAtlasOptions) {
       }
 
       const collectionCache: Record<string, MongoDB.MongoDBCollection<Document>> = {}
-      function getCollection<T extends Document>(collectionName: string, dbName = options.defaultDb): MongoDB.MongoDBCollection<T> {
+      function getCollection<T extends Document>(collectionName: string, dbName?: string): MongoDB.MongoDBCollection<T> {
+         dbName = dbName || options.defaultDb || c.env.REALM_DEFAULT_DB_NAME;
+         if (!dbName)
+            throw new Error('defaultDb is not configured, you need to provide dbName explicitly')
          const key = `${dbName}--${collectionName}`
          if (!collectionCache[key])
             collectionCache[key] = getDb(dbName).collection(collectionName)
