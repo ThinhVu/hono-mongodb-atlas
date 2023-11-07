@@ -1,0 +1,1 @@
+An example using hono-mongodb-atlas plugin
