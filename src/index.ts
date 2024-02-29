@@ -14,7 +14,7 @@ export interface Env {
 }
 
 let App: Realm.App
-let user
+let user: any;
 let client: MongoDB
 
 export const KEYS = {
@@ -32,11 +32,6 @@ export interface IMongoDBAtlasOptions {
 
 export function mongoDBAtlas(options?: IMongoDBAtlasOptions) {
    return async function(c: Context, next: Next) {
-      if (App) {
-         await next()
-         return
-      }
-
       const opts = options || {}
       const realmAppId = opts.realmAppId || c.env.REALM_APP_ID
       if (!realmAppId)
@@ -46,9 +41,16 @@ export function mongoDBAtlas(options?: IMongoDBAtlasOptions) {
       if (!realmApiKey)
          throw new Error('options.realmApiKey and env.REALM_API_KEY is not configured')
 
-      App = new Realm.App(realmAppId)
-      user = await App.logIn(Realm.Credentials.apiKey(realmApiKey))
-      client = user.mongoClient('mongodb-atlas')
+      if (!App) {
+         App = new Realm.App(realmAppId);
+      }
+      if (!user) {
+         user = await App.logIn(Realm.Credentials.apiKey(realmApiKey));
+      }
+   
+      if (!client) {
+         client = user.mongoClient("mongodb-atlas");
+      }
 
       // for one who want to inspect raw components
       c.set(`${opts.realmName}-${KEYS.APP}`, App)
